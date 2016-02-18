@@ -53,7 +53,7 @@ namespace CodeWarsImporter
 
                     try
                     {
-                        Console.WriteLine($"#{n}: Reading {kata}");
+                        Console.WriteLine($"Reading {kata}");
 
                         var solution = cw.FetchSolution(kata);
 

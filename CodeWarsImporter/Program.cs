@@ -44,32 +44,31 @@ namespace CodeWarsImporter
             var sw = new StreamWriter("Error.log");
 
             int batchNumber = 0;
-            int n = 0;
             IEnumerable<string> katas;
             while ((katas = cw.FetchKatas(batchNumber)).Count() > 0)
             {
-                foreach (var kata in katas)
+                Parallel.ForEach(katas, kata =>
                 {
-                    ++n;
-
-                    string slug = Regex.Match(kata, @"/kata/(?<Slug>[^/]+)").Groups["Slug"].Value;
-                    Console.WriteLine($"#{n} {kata}");
+                    string slug = Regex.Match(kata, @"/kata/(?<Slug>[^/]*?)/").Groups["Slug"].Value;
 
                     try
                     {
+                        Console.WriteLine($"#{n}: Reading {kata}");
+
                         var solution = cw.FetchSolution(kata);
 
                         Directory.CreateDirectory(solution.Kyu);
 
+                        Console.WriteLine($"Writing <{solution.Kyu}> {slug}");
                         File.WriteAllText(Path.Combine(solution.Kyu, $"{slug}.js")
-                            , $"// http://www.codewars.com{kata.Replace("/train/javascript", "")}\n\n"
+                            , $"// http://www.codewars.com/kata/{slug}\n\n"
                                 + String.Join("\n\n// alternative solution\n", solution.Solutions));
                     }
                     catch (Exception ex)
                     {
-                        sw.WriteLine(kata + " -> " + ex.Message);
+                        sw.WriteLine(kata + " -> " + ex);
                     }
-                }
+                });
                 ++batchNumber;
             }
 

@@ -44,16 +44,19 @@ namespace CodeWarsImporter
             var sw = new StreamWriter("Error.log");
 
             int batchNumber = 0;
+            int total = 0;
+            int success = 0;
             IEnumerable<string> katas;
             while ((katas = cw.FetchKatas(batchNumber)).Count() > 0)
             {
-                Parallel.ForEach(katas, kata =>
+                foreach (var kata in katas)
                 {
                     string slug = Regex.Match(kata, @"/kata/(?<Slug>[^/]*?)/").Groups["Slug"].Value;
 
+                    ++total;
                     try
                     {
-                        Console.WriteLine($"Reading {kata}");
+                        Console.WriteLine($"#{total} Reading {kata}");
 
                         var solution = cw.FetchSolution(kata);
 
@@ -63,18 +66,19 @@ namespace CodeWarsImporter
                         File.WriteAllText(Path.Combine(solution.Kyu, $"{slug}.js")
                             , $"// http://www.codewars.com/kata/{slug}\n\n"
                                 + String.Join("\n\n// alternative solution\n", solution.Solutions));
+                        ++success;
                     }
                     catch (Exception ex)
                     {
                         sw.WriteLine(kata + " -> " + ex);
                     }
-                });
+                }
                 ++batchNumber;
             }
 
             sw.Close();
 
-            Console.WriteLine("All done!");
+            Console.WriteLine($"All done! Total: {success}/{total}");
             Console.ReadKey(true);
         }
     }
